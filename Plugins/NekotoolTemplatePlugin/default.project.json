@@ -1,0 +1,12 @@
+{
+	"name": "NekotoolTemplate",
+	"tree": {
+		"$className": "Folder",
+		"NekotoolCommon": {
+			"$path": "../../Common"
+		},
+
+		"Src": {"$path": "src"},
+		"nekotool.config": {"$path": "nekotool.config.luau"}
+	}
+}
