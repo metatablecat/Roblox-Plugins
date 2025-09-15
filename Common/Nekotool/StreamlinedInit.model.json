@@ -1,0 +1,31 @@
+{
+	"ClassName":"Folder",
+	"Children": [
+		{
+			"Name": "serverInit",
+			"ClassName": "Script",
+			"Properties": {
+				"RunContext": "Server",
+				"Source": "require(script.Parent.Parent.SingletonLoader)(script.RunContext)"
+			}
+		},
+
+		{
+			"Name": "clientInit",
+			"ClassName": "Script",
+			"Properties": {
+				"RunContext": "Client",
+				"Source": "require(script.Parent.Parent.SingletonLoader)(script.RunContext)"
+			}
+		},
+
+		{
+			"Name": "pluginInit",
+			"ClassName": "Script",
+			"Properties": {
+				"RunContext": "Plugin",
+				"Source": "require(script.Parent.Parent.SingletonLoader)(script.RunContext)"
+			}
+		}
+	]
+}
