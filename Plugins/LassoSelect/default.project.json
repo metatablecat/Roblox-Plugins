@@ -1,0 +1,6 @@
+{
+	"name":"LassoSelect",
+	"tree": {
+		"$path": "src"
+	}
+}
