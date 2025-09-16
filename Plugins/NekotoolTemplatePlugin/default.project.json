@@ -3,7 +3,7 @@
 	"tree": {
 		"$className": "Folder",
 		"NekotoolCommon": {
-			"$path": "../../Common"
+			"$path": "../../Packages"
 		},
 
 		"Src": {"$path": "src"},
