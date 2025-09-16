@@ -1,4 +1,4 @@
-local Nekotool = require(script.Parent.Parent.NekotoolCommon.Nekotool)
+local Nekotool = require(script.Parent.Parent.Packages.Nekotool)
 
 return Nekotool.extend(function(Program)
 	Program.Init(function()
