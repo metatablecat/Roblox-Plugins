@@ -6,6 +6,7 @@ local MicroserviceCore = require(script.Internal.MicroserviceCore)
 local Nekotool = {
 	Version = script.Version.Value,
 	Program = Program.Exports,
+	Plugin = Program.Exports.Plugin,
 	
 	-- This just returns the function, its here so Luau properly types the Program item
 	-- This should be excalled (although I think it already is when its important?)
