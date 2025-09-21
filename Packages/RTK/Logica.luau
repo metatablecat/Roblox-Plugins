@@ -90,6 +90,7 @@ local function GraphNodeBase(): GraphNodeBase<any>
 	node._lastTick = 0
 	node._imark = false
 	node._alive = true
+	node._isChanging = false
 
 	function node.destroy(self: GraphNodeBase<any>)
 		-- just unlinks this object from any consumers
@@ -108,7 +109,7 @@ local function GraphNodeBase(): GraphNodeBase<any>
 	return node
 end
 
-local queue: { Node<any> } = {}
+local queue: { [GraphNodeBase<any>]: true } = {}
 
 local function Node<T>(T: T?): Node<T>
 	local node = GraphNodeBase() :: Node<T>
@@ -117,8 +118,16 @@ local function Node<T>(T: T?): Node<T>
 
 	function node:set(T: T)
 		if ANALYSIS then error("Cant set during analysis") end
+
+		if type(self._v) ~= "table" and self._v == T then
+			self._u = EMPTY
+			queue[self] = nil
+			return
+		end
+
 		self._u = T
-		table.insert(queue, self)
+		self._isChanging = true
+		queue[self] = true
 	end
 
 	function node:get()
@@ -182,10 +191,16 @@ local function Dependent<T>(fn: () -> T): Dependent<T>
 
 	function dep:set(T)
 		if ANALYSIS then error("Cant set during analysis") end
-		if self._v == T and type(T) ~= "table" then return end
+		if self._v == T and type(T) ~= "table" then
+			self._u = EMPTY
+			self._directWrite = false
+			queue[self] = nil
+			return
+		end
+
 		self._u = T
 		self._directWrite = true
-		table.insert(queue, self)
+		queue[self] = true
 	end
 
 	TRACE_DEP = dep
