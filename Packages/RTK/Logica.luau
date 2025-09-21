@@ -110,6 +110,10 @@ end
 
 local queue: { [GraphNodeBase<any>]: true } = {}
 
+local function didChange<T>(n: GraphNodeBase<T>, newValue: T): boolean
+	return type(newValue) == "table" or n._v ~= newValue
+end
+
 local function Node<T>(T: T?): Node<T>
 	local node = GraphNodeBase() :: Node<T>
 	node._v = T
@@ -118,14 +122,14 @@ local function Node<T>(T: T?): Node<T>
 	function node:set(T: T)
 		if ANALYSIS then error("Cant set during analysis") end
 
-		if type(self._v) ~= "table" and self._v == T then
+		if didChange(self, T) then
+			self._u = T
+			queue[self] = true
+		else
 			self._u = EMPTY
 			queue[self] = nil
 			return
 		end
-
-		self._u = T
-		queue[self] = true
 	end
 
 	function node:get()
@@ -174,14 +178,14 @@ local function Dependent<T>(fn: () -> T): Dependent<T>
 		local _u = if self._directWrite then self._u else self._fn()
 		self._directWrite = false
 
-		if self._v ~= _u or type(_u) == "table" then
+		if didChange(self, _u) then
 			self._v = _u
 			if self._imark and IMARK then IMARK[self] = self.__RCNodes end
-		end
 
-		for dep in self._dependents do
-			--if dep._lastTick == TICK then continue end
-			dep:get()
+			for dep in self._dependents do
+				--if dep._lastTick == TICK then continue end
+				dep:get()
+			end
 		end
 
 		return self._v
@@ -189,16 +193,17 @@ local function Dependent<T>(fn: () -> T): Dependent<T>
 
 	function dep:set(T)
 		if ANALYSIS then error("Cant set during analysis") end
-		if self._v == T and type(T) ~= "table" then
+
+		if didChange(self, T) then
+			self._u = T
+			self._directWrite = true
+			queue[self] = true
+		else
 			self._u = EMPTY
 			self._directWrite = false
 			queue[self] = nil
 			return
 		end
-
-		self._u = T
-		self._directWrite = true
-		queue[self] = true
 	end
 
 	TRACE_DEP = dep
