@@ -90,7 +90,6 @@ local function GraphNodeBase(): GraphNodeBase<any>
 	node._lastTick = 0
 	node._imark = false
 	node._alive = true
-	node._isChanging = false
 
 	function node.destroy(self: GraphNodeBase<any>)
 		-- just unlinks this object from any consumers
@@ -126,7 +125,6 @@ local function Node<T>(T: T?): Node<T>
 		end
 
 		self._u = T
-		self._isChanging = true
 		queue[self] = true
 	end
 
@@ -243,7 +241,7 @@ RunService.PreRender:Connect(function()
 	TICK = os.clock()
 	ANALYSIS = true
 	IMARK = {}
-	for _, openNode in queue do
+	for openNode in queue do
 		-- first, update base nodes
 		openNode:get()
 
