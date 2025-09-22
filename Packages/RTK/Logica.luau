@@ -78,6 +78,7 @@ local RCI = {
 	end,
 }
 
+local queue: { [GraphNodeBase<any>]: true } = {}
 local function GraphNodeBase(): GraphNodeBase<any>
 	local node = {}
 	node._tag = "untagged"
@@ -95,20 +96,19 @@ local function GraphNodeBase(): GraphNodeBase<any>
 		-- just unlinks this object from any consumers
 		-- it does NOT travel up the tree and disconnect itself from dependents
 		node._alive = false
+		queue[self] = nil
 
-		for consumer in self._consumers do
-			consumer._dependents[self] = nil
+		for consumer in self._dependents do
+			consumer._consumers[self] = nil
 		end
 
-		table.clear(self._consumers)
+		table.clear(self._dependents)
 
 		-- TODO: if this node has a Recreate connection, unmark it from the node
 	end
 
 	return node
 end
-
-local queue: { [GraphNodeBase<any>]: true } = {}
 
 local function didChange<T>(n: GraphNodeBase<T>, newValue: T): boolean
 	return type(newValue) == "table" or n._v ~= newValue
@@ -121,6 +121,7 @@ local function Node<T>(T: T?): Node<T>
 
 	function node:set(T: T)
 		if ANALYSIS then error("Cant set during analysis") end
+		if not self._alive then error("Cant set on a dead state object") end
 
 		if didChange(self, T) then
 			self._u = T
@@ -193,6 +194,7 @@ local function Dependent<T>(fn: () -> T): Dependent<T>
 
 	function dep:set(T)
 		if ANALYSIS then error("Cant set during analysis") end
+		if not self._alive then error("Cant set on a dead state object") end
 
 		if didChange(self, T) then
 			self._u = T
