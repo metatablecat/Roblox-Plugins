@@ -40,7 +40,7 @@ export type Dependent<T> = GraphNodeBase<T> & {
 	set: (Dependent<T>, T) -> (),
 }
 
-export type Any = Node<any> | Dependent<any>
+export type Any<T = any> = Node<T> | Dependent<T>
 
 local RCI = {
 	watch = function<T>(self: GraphNodeBase<T>, RCNode: Recreate.Node, prop: string)
