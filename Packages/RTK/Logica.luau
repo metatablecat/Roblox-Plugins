@@ -104,7 +104,9 @@ local function GraphNodeBase(): GraphNodeBase<any>
 
 		table.clear(self._dependents)
 
-		-- TODO: if this node has a Recreate connection, unmark it from the node
+		for node in self.__RCNodes do
+			node:UnbindState(self)
+		end
 	end
 
 	return node

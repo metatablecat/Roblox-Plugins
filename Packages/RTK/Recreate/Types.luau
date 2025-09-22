@@ -34,11 +34,16 @@ export type Implementor = {
 	set: (Watchable, quiet: boolean, any) -> (),
 }
 
+export type WatchableState = {
+	propName: string,
+	connections: {RBXScriptConnection}
+}
+
 export type Node = {
 	FactoryName: string,
 	Name: string,
 	ID: string,
-	Watched: { [Watchable]: { [string]: true } },
+	Watched: { [Watchable]: { [string]: WatchableState } },
 	Children: { [string]: Node },
 	Destructors: { [() -> ()]: (Node) -> () },
 	Parent: Node | Instance?,
@@ -46,6 +51,7 @@ export type Node = {
 	SetParent: (Node, Node | Instance?) -> (),
 	Destroy: (Node) -> (),
 	SetOnDestroy: (Node, (Node) -> ()) -> () -> (),
+	UnbindState: (Node, state: Watchable) -> ()
 }
 
 --[=[

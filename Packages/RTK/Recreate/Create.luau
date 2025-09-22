@@ -18,6 +18,27 @@ local function makeEvent(
 	return sp.Connection
 end
 
+local function bindRCI(node: Types.Node, propName: string, watchable: Types.Watchable, connection: RBXScriptConnection?)
+	local watchState = node.Watched[watchable]
+	if not watchState then
+		watchState = {}
+		node.Watched[watchable] = watchState
+	end
+
+	local propState = watchState[propName]
+	if not propState then
+		propState = {
+			propName = propName,
+			connections = {}
+		}
+		watchState[propName] = propState
+	end
+
+	if connection then
+		table.insert(propState.connections, connection)
+	end
+end
+
 local function watchRCI(node: Types.Node, propName: string, watchable: Types.Watchable)
 	local implementor = watchable.__RCImplementor
 	if not implementor then
@@ -31,13 +52,7 @@ local function watchRCI(node: Types.Node, propName: string, watchable: Types.Wat
 		implementor.watch(watchable, node, propName)
 	end
 
-	local watchState = node.Watched[watchable]
-	if not watchState then
-		watchState = {}
-		node.Watched[watchable] = watchState
-	end
-
-	watchState[propName] = true
+	bindRCI(node, propName, watchable)
 end
 
 local function applyProp(node: Types.Node, propName: string | Types.SpecialKey, prop: any)
@@ -53,10 +68,12 @@ local function applyProp(node: Types.Node, propName: string | Types.SpecialKey, 
 			assert(prop.__RCImplementor.can_set(prop), `[ReCreate]: __RCImplementor for state {prop} cannot set`)
 
 			if not Common.PluginSupressRuntime then
-				node.Instance:GetPropertyChangedSignal(propName.prop):Connect(function()
+				local signal = node.Instance:GetPropertyChangedSignal(propName.prop):Connect(function()
 					local newValue = node.Instance[propName.prop]
 					prop.__RCImplementor.set(prop, false, newValue)
 				end)
+
+				bindRCI(node, propName.prop, prop, signal)
 			end
 
 			if sk == "ControlState" then

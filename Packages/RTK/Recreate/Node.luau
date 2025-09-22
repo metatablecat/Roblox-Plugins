@@ -196,7 +196,7 @@ local function Node(factoryName: string, inst: Instance): Types.Node
 		self:SetParent(nil) -- this might double trigger Destroy
 
 		for RCImpl in self.Watched do
-			RCImpl.__RCImplementor.unwatch(RCImpl, self)
+			self:UnbindState(RCImpl)
 		end
 
 		for _, destructor in self.Destructors do
@@ -205,6 +205,21 @@ local function Node(factoryName: string, inst: Instance): Types.Node
 
 		table.clear(self.Destructors)
 		table.clear(self.Watched)
+	end
+
+	function Node.UnbindState(self: Types.Node, state: Types.Watchable)
+		local stateEntry = self.Watched[state]
+		if not stateEntry then return end
+
+		-- clear prop connections
+		for _, propData in stateEntry do
+			for _, connection in propData.connections do
+				connection:Disconnect()
+			end
+		end
+
+		self.Watched[state] = nil
+		state.__RCImplementor.unwatch(state, self)
 	end
 
 	Common.RuntimeContext.Nodes[Node.ID] = Node
